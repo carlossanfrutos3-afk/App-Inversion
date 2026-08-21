@@ -1,0 +1,1641 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Seguimiento · AMD · NVDA · BTC</title>
+<meta name="theme-color" content="#EEF1F4">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Seguimiento">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ===================================================================
+   OBLEA PULIDA — tema claro por defecto, oscuro conmutable.
+   El fondo es el gris azulado de una oblea de silicio; los acentos son
+   los tonos iridiscentes de una fotografía de dado: magenta, verde
+   turquesa e índigo. Todos los números en monoespaciada tabular para
+   que las columnas se alineen como en un instrumento de medida.
+   =================================================================== */
+:root{
+  --ground:#EEF1F4;
+  --surface:#FFFFFF;
+  --surface-2:#F6F8FA;
+  --rule:#D3DAE1;
+  --rule-soft:#E4E9EE;
+  --ink:#131A22;
+  --dim:#5C6875;
+  --dimmer:#636F7C;
+  --techo:#C0345C;
+  --suelo:#0E7A6E;
+  --spot:#3D4EA8;
+  --techo-wash:rgba(192,52,92,.07);
+  --suelo-wash:rgba(14,122,110,.07);
+  --spot-wash:rgba(61,78,168,.08);
+  --shadow:0 1px 2px rgba(19,26,34,.05),0 2px 8px rgba(19,26,34,.04);
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+  --sans:"Archivo",system-ui,-apple-system,sans-serif;
+  --r:4px;
+}
+[data-theme="dark"]{
+  --ground:#12151C;
+  --surface:#1A1F29;
+  --surface-2:#20263A;
+  --rule:#2C3441;
+  --rule-soft:#222937;
+  --ink:#EDEBE6;
+  --dim:#8B96A5;
+  --dimmer:#78849A;
+  --techo:#E56A88;
+  --suelo:#45C4B6;
+  --spot:#8B9BE8;
+  --techo-wash:rgba(229,106,136,.10);
+  --suelo-wash:rgba(69,196,182,.10);
+  --spot-wash:rgba(139,155,232,.12);
+  --shadow:none;
+}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--ground);color:var(--ink);font-family:var(--sans);
+  line-height:1.5;-webkit-font-smoothing:antialiased;
+  font-variant-numeric:tabular-nums;
+}
+.wrap{max-width:640px;margin:0 auto;padding:env(safe-area-inset-top) 16px 48px}
+
+/* ---------- cabecera ---------- */
+header{
+  padding:20px 0 14px;position:sticky;top:0;z-index:30;
+  background:var(--ground);border-bottom:1px solid var(--rule);
+}
+.hrow{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.htitle{font-size:21px;font-weight:700;letter-spacing:-.025em;line-height:1.15}
+.hmeta{
+  font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--dim);margin-top:7px;
+  display:flex;flex-wrap:wrap;gap:7px;align-items:center;
+}
+.hmeta .sep{color:var(--rule)}
+.hbtns{display:flex;gap:6px;flex-shrink:0}
+
+.ibtn{
+  background:var(--surface);border:1px solid var(--rule);color:var(--dim);
+  font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.09em;
+  text-transform:uppercase;padding:8px 11px;border-radius:var(--r);cursor:pointer;
+  transition:background .15s,color .15s,border-color .15s;
+}
+.ibtn:hover{color:var(--ink);border-color:var(--dimmer)}
+.ibtn:active{transform:translateY(.5px)}
+.ibtn.on,.ibtn[aria-pressed="true"]{background:var(--ink);color:var(--ground);border-color:var(--ink)}
+.ibtn:focus-visible{outline:2px solid var(--spot);outline-offset:2px}
+#b-theme{padding:8px 10px}
+
+.sessions{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.ses{
+  font-family:var(--mono);font-size:9px;font-weight:500;letter-spacing:.1em;
+  text-transform:uppercase;padding:4px 8px;border-radius:var(--r);
+  border:1px solid var(--rule);color:var(--dimmer);background:var(--surface);
+}
+.ses.live{border-color:var(--suelo);color:var(--suelo);background:var(--suelo-wash)}
+.ses.ext{border-color:var(--spot);color:var(--spot);background:var(--spot-wash)}
+
+/* ---------- paneles y campos ---------- */
+.panelbox{
+  border:1px solid var(--rule);background:var(--surface);border-radius:var(--r);
+  margin-top:14px;padding:16px;display:none;box-shadow:var(--shadow);
+}
+.panelbox.open{display:block}
+.panelbox h3{
+  margin:0 0 6px;font-family:var(--mono);font-size:10px;font-weight:600;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--dim);
+}
+.panelbox p{margin:0 0 4px;font-size:13px;color:var(--dim);line-height:1.6}
+.panelbox p a{color:var(--spot);text-decoration:underline;text-underline-offset:2px}
+label.fl{
+  display:block;font-family:var(--mono);font-size:9px;font-weight:500;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--dimmer);margin:14px 0 6px;
+}
+input[type=text],input[type=number],textarea,.sel{
+  width:100%;background:var(--surface-2);border:1px solid var(--rule);color:var(--ink);
+  font-family:var(--mono);font-size:15px;padding:10px 11px;border-radius:var(--r);
+}
+textarea{font-size:11.5px;resize:vertical;line-height:1.6}
+input:focus,textarea:focus,.sel:focus{outline:2px solid var(--spot);outline-offset:1px;border-color:var(--spot)}
+.inline{display:flex;gap:7px;align-items:center;margin-top:12px;flex-wrap:wrap}
+.presets{display:flex;flex-wrap:wrap;gap:6px}
+.readout{
+  margin-top:14px;padding-top:13px;border-top:1px solid var(--rule-soft);
+  font-family:var(--mono);font-size:11.5px;color:var(--dim);line-height:1.8;
+}
+.readout b{color:var(--spot);font-weight:600}
+
+/* ---------- pestañas ---------- */
+.tabs{display:flex;margin-top:18px;background:var(--surface);border:1px solid var(--rule);border-radius:var(--r);padding:3px;gap:3px}
+.tab{
+  flex:1;background:transparent;border:0;border-radius:3px;color:var(--dim);
+  font-family:var(--mono);font-size:10.5px;font-weight:500;letter-spacing:.12em;
+  text-transform:uppercase;padding:10px 6px;cursor:pointer;transition:.15s;
+}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--ground)}
+.tab:focus-visible{outline:2px solid var(--spot);outline-offset:-2px}
+.pane{display:none}
+.pane.open{display:block}
+
+/* ---------- tarjetas de seguimiento ---------- */
+.card{
+  border:1px solid var(--rule);background:var(--surface);border-radius:var(--r);
+  margin-top:14px;box-shadow:var(--shadow);overflow:hidden;
+}
+.chead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:16px 16px 0;cursor:pointer}
+.sym{font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:.09em}
+.nm{font-size:12px;color:var(--dim);margin-top:1px}
+.badge{
+  display:inline-block;font-family:var(--mono);font-size:8.5px;font-weight:500;
+  letter-spacing:.11em;text-transform:uppercase;padding:4px 8px;border-radius:3px;margin-top:8px;
+  border:1px solid currentColor;
+}
+.badge.up{color:var(--suelo);background:var(--suelo-wash)}
+.badge.side{color:var(--spot);background:var(--spot-wash)}
+.badge.down{color:var(--techo);background:var(--techo-wash)}
+.px{text-align:right;flex-shrink:0}
+.px .u{font-family:var(--mono);font-size:24px;font-weight:600;letter-spacing:-.02em;line-height:1.1}
+.px .e{font-family:var(--mono);font-size:14px;color:var(--spot);font-weight:500;margin-top:3px}
+.px .c{font-family:var(--mono);font-size:11.5px;font-weight:500;margin-top:4px}
+.px .c.pos{color:var(--suelo)}
+.px .c.neg{color:var(--techo)}
+.px .src{font-family:var(--mono);font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--dimmer);margin-top:5px}
+.px .src.stale{color:var(--spot)}
+
+/* medidor: escala graduada, no una barra lisa */
+.gauge{padding:18px 16px 6px}
+.gbar{position:relative;height:6px;background:var(--surface-2);border:1px solid var(--rule-soft);border-radius:3px}
+.gfill{position:absolute;top:0;bottom:0;left:0;border-radius:3px;
+  background:linear-gradient(90deg,var(--suelo),var(--spot) 52%,var(--techo));opacity:.28}
+.gticks{position:absolute;left:0;right:0;top:0;bottom:0}
+.gticks i{position:absolute;top:1px;bottom:1px;width:1px;background:var(--rule)}
+.gmark{position:absolute;top:-5px;width:3px;height:16px;background:var(--spot);border-radius:2px;box-shadow:0 0 0 2px var(--surface)}
+.glab{display:flex;justify-content:space-between;gap:14px;font-family:var(--mono);font-size:11px;font-weight:500;margin-top:11px}
+.glab .s{color:var(--suelo)}
+.glab .t{color:var(--techo);text-align:right}
+.glab em{font-style:normal;color:var(--spot);font-weight:500}
+.glab small{display:block;font-family:var(--sans);font-size:10px;font-weight:400;color:var(--dimmer);margin-top:2px;letter-spacing:0}
+
+/* ---------- listas de niveles ---------- */
+.detail{display:none;padding:8px 16px 16px;margin-top:14px;border-top:1px solid var(--rule-soft)}
+.detail.open{display:block}
+.lvl{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;
+  padding:9px 0;border-bottom:1px solid var(--rule-soft);font-size:12px}
+.lvl:last-child{border-bottom:0}
+.lvl .n{color:var(--ink);line-height:1.35}
+.lvl .n i{font-style:normal;font-family:var(--mono);font-size:8.5px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--dimmer);display:block;margin-top:2px}
+.lvl .v{font-family:var(--mono);font-size:12px;font-weight:500;text-align:right;white-space:nowrap;line-height:1.4}
+.lvl .d{font-family:var(--mono);font-size:10.5px;color:var(--dimmer);text-align:right;min-width:48px}
+.lvl.res .v{color:var(--techo)}
+.lvl.sop .v{color:var(--suelo)}
+.lvl.here{background:var(--spot-wash);box-shadow:inset 2px 0 0 var(--spot)}
+.lvl.here .v{color:var(--spot);font-weight:600}
+.lvl.here .n{padding-left:9px}
+.manual{margin-top:14px;padding-top:14px;border-top:1px solid var(--rule-soft)}
+
+/* ---------- rotura de nivel y recálculo ---------- */
+.brk{display:none;margin:6px 16px 0;padding:11px 13px;border:1px solid var(--techo);border-left-width:3px;
+  border-radius:var(--r);background:var(--techo-wash);font-size:12px;line-height:1.55;color:var(--ink)}
+.brk.show{display:block}
+.brk.ok{border-color:var(--suelo);background:var(--suelo-wash)}
+.brk .bt{font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--techo);display:block;margin-bottom:4px}
+.brk.ok .bt{color:var(--suelo)}
+.brk .ba{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.lvsrc{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;color:var(--dimmer);
+  line-height:1.7;margin-top:2px}
+.lvsrc b{color:var(--spot);font-weight:600}
+.recalcbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:14px}
+.recalcbar .st{font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;color:var(--dimmer)}
+.ibtn.busy{opacity:.55;pointer-events:none}
+.lvctl{margin-top:14px;padding-top:14px;border-top:1px solid var(--rule-soft)}
+
+/* ---------- pestaña de análisis ---------- */
+.anahead{padding:18px 0 0}
+.asel{display:flex;gap:6px}
+.sel{font-size:10.5px;letter-spacing:.05em;padding:8px 9px;width:auto;text-transform:uppercase}
+.dstat{margin-top:14px;font-family:var(--mono);font-size:10.5px;letter-spacing:.03em;color:var(--dim);line-height:1.8}
+.dstat b{color:var(--spot);font-weight:600}
+.dstat a{color:var(--spot)}
+
+.chart{margin-top:18px;border:1px solid var(--rule);background:var(--surface);border-radius:var(--r);padding:12px 6px 4px;box-shadow:var(--shadow)}
+.chart svg{display:block;width:100%;height:auto}
+.clegend{display:flex;flex-wrap:wrap;gap:12px;padding:12px 10px 6px;font-family:var(--mono);font-size:8.5px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.clegend i{display:inline-block;width:15px;height:2.5px;margin-right:6px;vertical-align:3px;border-radius:2px}
+
+.mgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px}
+.mcell{background:var(--surface);border:1px solid var(--rule);border-radius:var(--r);padding:14px}
+.mcell dt{font-family:var(--mono);font-size:8.5px;font-weight:500;letter-spacing:.11em;text-transform:uppercase;color:var(--dimmer)}
+.mcell dd{margin:6px 0 0;font-family:var(--mono);font-size:16px;font-weight:600;line-height:1.25}
+.mcell dd small{display:block;font-family:var(--sans);font-size:10.5px;font-weight:400;color:var(--dim);margin-top:3px;letter-spacing:0}
+.mcell dd.g{color:var(--suelo)}
+.mcell dd.r{color:var(--techo)}
+.mcell dd.y{color:var(--spot)}
+
+h4{font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+   color:var(--dim);margin:26px 0 0;padding-bottom:10px;border-bottom:1px solid var(--rule)}
+
+/* ---------- pie y avisos ---------- */
+.foot{margin-top:26px;font-size:12.5px;color:var(--dim);line-height:1.7}
+.foot b{color:var(--ink);font-weight:600}
+.err{
+  margin-top:14px;padding:13px 15px;border:1px solid var(--techo);border-left-width:3px;
+  border-radius:var(--r);background:var(--techo-wash);
+  font-size:12.5px;color:var(--ink);line-height:1.65;display:none;
+}
+.err.show{display:block}
+.err b{font-family:var(--mono);font-size:11.5px;font-weight:600;color:var(--techo)}
+
+@media (max-width:560px){
+  .mgrid{grid-template-columns:1fr}
+  .htitle{font-size:19px}
+  .px .u{font-size:21px}
+  .lvl{grid-template-columns:1fr auto auto;gap:8px;font-size:11.5px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="hrow">
+    <div>
+      <div class="htitle">Seguimiento de mercado</div>
+      <div class="hmeta">
+        <span id="m-fx">EUR/USD —</span><span class="sep">/</span>
+        <span id="m-upd">sin actualizar</span>
+      </div>
+      <div class="sessions" id="sessions"></div>
+    </div>
+    <div class="hbtns">
+      <button class="ibtn" id="b-theme" title="Cambiar tema" aria-label="Cambiar tema">Tema</button>
+      <button class="ibtn" id="b-refresh">Actualizar</button>
+      <button class="ibtn" id="b-cfg">Ajustes</button>
+    </div>
+  </div>
+</header>
+
+<div class="panelbox" id="cfg">
+  <h3>Datos en vivo</h3>
+  <p>Bitcoin y el tipo de cambio se actualizan solos, sin clave. Para AMD y NVIDIA hace falta una clave
+  gratuita de Finnhub: regístrate en <a href="https://finnhub.io/register" target="_blank" rel="noopener">finnhub.io/register</a>,
+  copia el token y pégalo aquí. Se guarda solo en este dispositivo.</p>
+  <label class="fl" for="k">Token de Finnhub</label>
+  <input type="text" id="k" placeholder="pega aquí tu token" autocomplete="off" spellcheck="false">
+  <label class="fl" for="avk">Clave de Alpha Vantage (histórico de acciones)</label>
+  <input type="text" id="avk" placeholder="opcional · 25 consultas al día" autocomplete="off" spellcheck="false">
+  <label class="fl">Modo de conversión</label>
+  <div class="presets" role="group" aria-label="Modo de conversión">
+    <button class="ibtn" data-mode="mid" aria-pressed="true">Interbancario</button>
+    <button class="ibtn" data-mode="buy" aria-pressed="false">TR · compra</button>
+    <button class="ibtn" data-mode="sell" aria-pressed="false">TR · venta</button>
+  </div>
+  <p style="margin-top:10px">Trade Republic aplica al dólar un margen documentado de <b style="color:var(--spot)">0,0014</b>
+  sobre el tipo interbancario: te resta esa cantidad cuando pagas en dólares y te la suma cuando cobras.
+  Son <b style="color:var(--spot)">0,12&nbsp;%</b> por operación, 0,24&nbsp;% ida y vuelta.</p>
+  <label class="fl" for="fxman">Tipo EUR/USD manual (vacío = automático)</label>
+  <input type="number" id="fxman" step="0.0001" placeholder="vacío = interbancario en vivo">
+  <div class="inline">
+    <button class="ibtn" id="b-auto">Auto cada 60 s</button>
+    <button class="ibtn" id="b-clear">Borrar datos guardados</button>
+  </div>
+  <div class="err" id="store-warn"></div>
+</div>
+
+<div class="tabs" role="tablist">
+  <button class="tab" data-tab="track" role="tab" aria-selected="true">Seguimiento</button>
+  <button class="tab" data-tab="ana" role="tab" aria-selected="false">Análisis</button>
+</div>
+
+<div id="pane-track" class="pane open">
+  <div class="recalcbar">
+    <button class="ibtn" id="b-recalc-all">Recalcular todos los niveles</button>
+    <button class="ibtn" id="b-lv-reset-all">Volver al estudio</button>
+    <span class="st" id="recalc-stat"></span>
+  </div>
+  <div id="cards"></div>
+</div>
+
+<div id="pane-ana" class="pane">
+  <div class="anahead">
+    <div class="asel" role="group" aria-label="Activo">
+      <button class="ibtn" data-asset="AMD" aria-pressed="true">AMD</button>
+      <button class="ibtn" data-asset="NVDA" aria-pressed="false">NVDA</button>
+      <button class="ibtn" data-asset="BTC" aria-pressed="false">BTC</button>
+    </div>
+    <div class="inline" style="margin-top:10px">
+      <button class="ibtn" id="b-run">Ejecutar análisis</button>
+      <button class="ibtn" id="b-csv">Pegar CSV</button>
+      <button class="ibtn" id="b-apply">Usar estos niveles en Seguimiento</button>
+      <select id="horizon" class="sel">
+        <option value="15">Proyectar 15 d</option>
+        <option value="30" selected>Proyectar 30 d</option>
+        <option value="60">Proyectar 60 d</option>
+        <option value="90">Proyectar 90 d</option>
+      </select>
+      <select id="regwin" class="sel">
+        <option value="60">Regresión 60 d</option>
+        <option value="120" selected>Regresión 120 d</option>
+        <option value="250">Regresión 250 d</option>
+      </select>
+    </div>
+    <div class="dstat" id="dstat">Sin datos cargados todavía.</div>
+  </div>
+
+  <div class="panelbox" id="csvbox">
+    <h3>Pegar histórico en CSV</h3>
+    <p>Sirve cualquier exportación con una fila por día. Detecta automáticamente las columnas de fecha,
+    cierre y, si están, máximo y mínimo. Vale lo que descargues de Investing.com, Yahoo Finance o tu
+    propio bróker. Sin clave y sin conexión.</p>
+    <textarea id="csvtext" rows="6" placeholder="fecha,apertura,maximo,minimo,cierre&#10;2026-08-13,480.10,486.40,478.90,482.93&#10;..."></textarea>
+    <div class="inline"><button class="ibtn" id="b-csvgo">Analizar este CSV</button></div>
+  </div>
+
+  <div id="chartwrap"></div>
+  <div id="anaout"></div>
+</div>
+
+<div class="err" id="err"></div>
+
+<div class="foot">
+  <b>Lo que ves es orientativo.</b> Las cotizaciones gratuitas llegan con retraso respecto al mercado
+  y el tipo de cambio del BCE es un valor diario, no un tick. De partida, los niveles son los del
+  estudio técnico del 6 de agosto de 2026. Cuando el precio rompe un techo o un suelo aparece el aviso
+  en la ficha del activo y con <b>Recalcular niveles</b> se rehace el mapa entero desde el histórico
+  real: extremos locales, Fibonacci, medias y pivotes. Los niveles recalculados se guardan en este
+  dispositivo; <b>Volver al estudio</b> devuelve los originales. No es asesoramiento financiero.
+</div>
+
+</div>
+
+<script>
+/* ---------- almacenamiento tolerante a fallos ---------- */
+const store = (() => {
+  let ok = true;
+  try { localStorage.setItem('__t','1'); localStorage.removeItem('__t'); }
+  catch(e){ ok = false; }
+  const mem = {};
+  if (!ok) {
+    document.getElementById('store-warn').textContent =
+      'Este entorno bloquea el almacenamiento local: la clave y los ajustes no se conservarán al cerrar. Descarga el archivo y ábrelo desde el móvil para que se guarden.';
+    document.getElementById('store-warn').classList.add('show');
+  }
+  return {
+    get: k => { try { return ok ? localStorage.getItem(k) : (mem[k] ?? null); } catch(e){ return mem[k] ?? null; } },
+    set: (k,v) => { try { ok ? localStorage.setItem(k,v) : (mem[k]=v); } catch(e){ mem[k]=v; } },
+    del: k => { try { ok ? localStorage.removeItem(k) : delete mem[k]; } catch(e){ delete mem[k]; } }
+  };
+})();
+
+/* ---------- mapas de niveles (estudio 6-ago-2026) ---------- */
+const ASSETS = [
+  {
+    sym:'AMD', name:'Advanced Micro Devices', kind:'stock',
+    regime:'down', regimeTxt:'Bajo SMA20 y SMA50', ref:482.93, dec:2,
+    levels:[
+      {v:597.99, t:'res', h:'Largo', n:'Objetivo medio de analistas'},
+      {v:584.73, t:'res', h:'Largo', n:'Máximo histórico · jun 2026'},
+      {v:552.33, t:'res', h:'Medio', n:'Resistencia de 3 meses'},
+      {v:511.73, t:'res', h:'Corto', n:'SMA 50 sesiones'},
+      {v:494.20, t:'res', h:'Corto', n:'SMA 20 sesiones'},
+      {v:481.95, t:'sop', h:'Corto', n:'Fibonacci 23,6 %'},
+      {v:460.55, t:'sop', h:'Corto', n:'Zona de estabilización · EMA200 4h'},
+      {v:429.56, t:'sop', h:'Medio', n:'Soporte de 3 meses'},
+      {v:418.36, t:'sop', h:'Medio', n:'Fibonacci 38,2 %'},
+      {v:393.36, t:'sop', h:'Medio', n:'Mínimo de 3 meses'},
+      {v:366.98, t:'sop', h:'Largo', n:'Fibonacci 50 %'},
+      {v:315.60, t:'sop', h:'Largo', n:'Fibonacci 61,8 %'}
+    ]
+  },
+  {
+    sym:'NVDA', name:'NVIDIA', kind:'stock',
+    regime:'up', regimeTxt:'Alcista · resultados 26 ago', ref:224.09, dec:2,
+    levels:[
+      {v:302.83, t:'res', h:'Largo', n:'Objetivo medio de analistas'},
+      {v:236.54, t:'res', h:'Largo', n:'Máximo de 52 semanas'},
+      {v:230.96, t:'res', h:'Medio', n:'R3 pivote'},
+      {v:228.03, t:'res', h:'Corto', n:'R2 pivote'},
+      {v:225.10, t:'res', h:'Corto', n:'Máximo intradía 13 ago'},
+      {v:221.16, t:'sop', h:'Corto', n:'S1 pivote'},
+      {v:220.20, t:'sop', h:'Corto', n:'Mínimo intradía 13 ago'},
+      {v:219.44, t:'sop', h:'Corto', n:'Fibonacci 23,6 % · ya superado'},
+      {v:218.23, t:'sop', h:'Corto', n:'S2 pivote'},
+      {v:216.26, t:'sop', h:'Medio', n:'S3 pivote'},
+      {v:208.86, t:'sop', h:'Medio', n:'Fibonacci 38,2 %'},
+      {v:200.31, t:'sop', h:'Largo', n:'Fibonacci 50 %'},
+      {v:191.75, t:'sop', h:'Largo', n:'Fibonacci 61,8 %'},
+      {v:164.07, t:'sop', h:'Largo', n:'Mínimo de 52 semanas'}
+    ]
+  },
+  {
+    sym:'BTC', name:'Bitcoin', kind:'crypto',
+    regime:'side', regimeTxt:'Lateral · bajo MA200', ref:63798.81, dec:0,
+    levels:[
+      {v:100146, t:'res', h:'Largo', n:'Fibonacci 61,8 % del tramo bajista'},
+      {v:92099,  t:'res', h:'Largo', n:'Fibonacci 50 %'},
+      {v:84052,  t:'res', h:'Largo', n:'Fibo 38,2 % · MA200 sesiones'},
+      {v:74095,  t:'res', h:'Medio', n:'Fibo 23,6 % · techo swing roto'},
+      {v:73211,  t:'res', h:'Medio', n:'Base del swing roto'},
+      {v:67000,  t:'res', h:'Corto', n:'Techo del rango'},
+      {v:63500,  t:'sop', h:'Corto', n:'Techo del suelo · MA200 semanas'},
+      {v:62500,  t:'sop', h:'Corto', n:'Base del suelo del rango'},
+      {v:58000,  t:'sop', h:'Medio', n:'Mínimo anual · julio 2026'},
+      {v:55000,  t:'sop', h:'Largo', n:'Techo banda coste on-chain'},
+      {v:50000,  t:'sop', h:'Largo', n:'Base banda coste on-chain'}
+    ]
+  }
+];
+
+/* ---------- estado ---------- */
+const TR_SPREAD = 0.0014;   // margen USD publicado por Trade Republic (FAQ 526)
+let MIDFX = parseFloat(store.get('fx')) || 1.1529;
+let fxMode = store.get('mode') || 'mid';
+let fxAuto = true;
+function effFx(){
+  if (!fxAuto) return MIDFX;
+  if (fxMode === 'buy')  return MIDFX - TR_SPREAD;   // cargos: compras en USD
+  if (fxMode === 'sell') return MIDFX + TR_SPREAD;   // abonos: vendes / cobras USD
+  return MIDFX;
+}
+let FX = effFx();
+let autoTimer = null;
+const state = {};
+ASSETS.forEach(a => {
+  const man = parseFloat(store.get('man:'+a.sym));
+  state[a.sym] = { price: man || a.ref, chg: null, live: false, manual: !!man };
+});
+
+
+/* =====================================================================
+   MAPAS DE NIVELES VIVOS
+   LV[sym] es el mapa que se está usando ahora mismo. Al arrancar es el
+   estudio del 6-ago-2026; en cuanto se recalcula pasa a ser el mapa
+   derivado del histórico real, y se guarda en este dispositivo.
+   ===================================================================== */
+const STUDY_LABEL = 'Estudio técnico · 6 ago 2026';
+const LV = {};
+
+function studySet(a){
+  return { levels: a.levels.map(l => ({...l})), regime: a.regime, regimeTxt: a.regimeTxt,
+           ref: a.ref, ts: null, label: STUDY_LABEL, src: null, custom: false };
+}
+function loadLevelSets(){
+  ASSETS.forEach(a => {
+    let s = null;
+    try {
+      const raw = store.get('lv:'+a.sym);
+      if (raw) { const j = JSON.parse(raw);
+        if (j && Array.isArray(j.levels) && j.levels.length >= 4 && j.ref > 0) s = j; }
+    } catch(e){}
+    LV[a.sym] = s || studySet(a);
+  });
+}
+function saveLevelSet(sym){
+  try { store.set('lv:'+sym, JSON.stringify(LV[sym])); } catch(e){}
+}
+function resetLevelSet(sym){
+  const a = ASSETS.find(x => x.sym === sym);
+  LV[sym] = studySet(a); store.del('lv:'+sym);
+}
+loadLevelSets();
+
+/* Rotura: el mapa se calculó con el precio en `ref`, dentro de un rango
+   concreto. Si el precio de ahora se ha salido de ese rango, el mapa está
+   caducado y se dice cuántos niveles se han dejado atrás. */
+function breakInfo(a){
+  const S = LV[a.sym], p = state[a.sym].price, ref = S.ref;
+  if (!(p > 0) || !(ref > 0)) return null;
+  const res = S.levels.filter(l => l.v > ref).sort((x,y) => x.v-y.v)[0];
+  const sop = S.levels.filter(l => l.v < ref).sort((x,y) => y.v-x.v)[0];
+  if (res && p > res.v * 1.0005){
+    const n = S.levels.filter(l => l.v > ref && l.v <= p).length;
+    return { dir:'techo', lvl:res, n, pct:(p-res.v)/res.v*100 };
+  }
+  if (sop && p < sop.v * 0.9995){
+    const n = S.levels.filter(l => l.v < ref && l.v >= p).length;
+    return { dir:'suelo', lvl:sop, n, pct:(p-sop.v)/sop.v*100 };
+  }
+  return null;
+}
+
+/* Construye un mapa de niveles a partir de un análisis técnico (TA.analyze):
+   extremos locales agrupados, Fibonacci, medias móviles, pivotes clásicos y
+   los extremos del periodo. Se fusionan los que caen casi en el mismo precio. */
+function buildLevels(r, refPrice){
+  const p = refPrice > 0 ? refPrice : r.price;
+  const cand = [];
+  const add = (v, n) => { if (isFinite(v) && v > 0) cand.push({ v, n }); };
+
+  r.levels.forEach(l => add(l.v, 'Extremo local · ' + l.touches + (l.touches > 1 ? ' toques' : ' toque')));
+  r.fib.forEach(f => add(f.v, 'Fibonacci ' + (f.f*100).toFixed(1).replace('.',',') + ' %'));
+  add(r.ma.ma20,  'SMA 20 sesiones');
+  add(r.ma.ma50,  'SMA 50 sesiones');
+  add(r.ma.ma200, 'SMA 200 sesiones');
+  add(r.hi, 'Máximo del periodo');
+  add(r.lo, 'Mínimo del periodo');
+  if (r.pivots) ['R2','R1','S1','S2'].forEach(k => add(r.pivots[k], k + ' pivote'));
+
+  const out = [];
+  cand.sort((x,y) => y.v - x.v).forEach(c => {
+    const same = out.find(o => Math.abs(o.v - c.v)/c.v < 0.004);
+    if (same){ if (same.tags.length < 2) same.tags.push(c.n.replace(/ ·.*$/,'')); return; }
+    out.push({ v: c.v, tags: [c.n] });
+  });
+
+  return out.map(l => {
+    const d = Math.abs(l.v - p)/p*100;
+    return { v: l.v, t: l.v > p ? 'res' : 'sop',
+             h: d < 3 ? 'Corto' : d < 10 ? 'Medio' : 'Largo',
+             n: l.tags.join(' · ') };
+  }).filter(l => {
+    const d = Math.abs(l.v - p)/p*100;
+    return d < 75;                       // fuera lo que ya no es un nivel operativo
+  }).sort((x,y) => y.v - x.v);
+}
+
+function regimeFrom(r){
+  const p = r.price, m20 = r.ma.ma20, m50 = r.ma.ma50;
+  let regime, txt;
+  if (m20 && m50 && p > m20 && p > m50)      { regime = 'up';   txt = 'Sobre SMA20 y SMA50'; }
+  else if (m20 && m50 && p < m20 && p < m50) { regime = 'down'; txt = 'Bajo SMA20 y SMA50'; }
+  else if (m20 || m50)                       { regime = 'side'; txt = 'Entre SMA20 y SMA50'; }
+  else { regime = r.trend.bearish ? 'down' : 'up'; txt = r.trend.bearish ? 'Pendiente bajista' : 'Pendiente alcista'; }
+  if (r.trend.r2 != null && r.trend.r2 < 0.4) txt += ' · sin tendencia clara';
+  return { regime, regimeTxt: txt };
+}
+
+/* ---------- estado de las sesiones ---------- */
+function etParts(){
+  // hora de Nueva York, robusta al horario de verano
+  const f = new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',hour12:false,
+            weekday:'short',hour:'2-digit',minute:'2-digit'});
+  const p = {}; f.formatToParts(new Date()).forEach(x => p[x.type] = x.value);
+  return { wd:p.weekday, mins: parseInt(p.hour,10)*60 + parseInt(p.minute,10) };
+}
+function cetMins(){
+  const f = new Intl.DateTimeFormat('en-US',{timeZone:'Europe/Madrid',hour12:false,hour:'2-digit',minute:'2-digit'});
+  const p = {}; f.formatToParts(new Date()).forEach(x => p[x.type] = x.value);
+  return parseInt(p.hour,10)*60 + parseInt(p.minute,10);
+}
+function marketState(){
+  const {wd, mins} = etParts();
+  const weekend = (wd === 'Sat' || wd === 'Sun');
+  let nasdaq = 'cerrado', cls = '';
+  if (!weekend) {
+    if (mins >= 570 && mins < 960)      { nasdaq = 'NASDAQ abierto';   cls = 'live'; }
+    else if (mins >= 240 && mins < 570) { nasdaq = 'Pre-market';       cls = 'ext';  }
+    else if (mins >= 960 && mins < 1200){ nasdaq = 'After-hours';      cls = 'ext';  }
+    else                                { nasdaq = 'NASDAQ cerrado';   cls = '';     }
+  } else { nasdaq = 'Fin de semana'; }
+
+  const c = cetMins();
+  const lsOpen = !weekend && c >= 450 && c < 1380;   // LS Exchange 07:30-23:00
+  return {
+    nasdaq, cls,
+    official: cls === 'live',
+    extended: cls === 'ext',
+    ls: lsOpen ? 'LS Exchange abierto' : 'LS Exchange cerrado',
+    lsCls: lsOpen ? 'live' : ''
+  };
+}
+function renderSessions(){
+  const m = marketState();
+  document.getElementById('sessions').innerHTML =
+    `<span class="ses ${m.cls}">${m.nasdaq}</span>` +
+    `<span class="ses ${m.lsCls}">${m.ls}</span>` +
+    `<span class="ses live">Bitcoin 24/7</span>`;
+  return m;
+}
+
+/* ---------- formato ---------- */
+const fmt = (v,d) => v.toLocaleString('es-ES',{minimumFractionDigits:d,maximumFractionDigits:d});
+const nf4 = v => v.toLocaleString('es-ES',{minimumFractionDigits:4,maximumFractionDigits:4});
+
+/* ---------- render ---------- */
+const cardsEl = document.getElementById('cards');
+cardsEl.innerHTML = ASSETS.map(a => `
+  <div class="card" data-sym="${a.sym}">
+    <div class="chead" data-toggle="${a.sym}">
+      <div>
+        <div class="sym">${a.sym}</div>
+        <div class="nm">${a.name}</div>
+        <div class="badge ${a.regime}" id="bg-${a.sym}">${a.regimeTxt}</div>
+      </div>
+      <div class="px">
+        <div class="u" id="u-${a.sym}">—</div>
+        <div class="e" id="e-${a.sym}">—</div>
+        <div class="c" id="c-${a.sym}"></div>
+        <div class="src" id="s-${a.sym}">referencia</div>
+      </div>
+    </div>
+    <div class="gauge">
+      <div class="gbar"><div class="gfill" id="gf-${a.sym}"></div><div class="gticks">${
+        [10,20,30,40,50,60,70,80,90].map(p => `<i style="left:${p}%"></i>`).join('')
+      }</div><div class="gmark" id="gm-${a.sym}"></div></div>
+      <div class="glab">
+        <span class="s" id="gs-${a.sym}"></span>
+        <span class="t" id="gt-${a.sym}"></span>
+      </div>
+    </div>
+    <div class="brk" id="brk-${a.sym}"></div>
+    <div class="detail" id="d-${a.sym}">
+      <div class="lvsrc" id="lvsrc-${a.sym}"></div>
+      <div id="ll-${a.sym}"></div>
+      <div class="lvctl">
+        <div class="recalcbar" style="margin-top:0">
+          <button class="ibtn" data-recalc="${a.sym}">Recalcular niveles</button>
+          <button class="ibtn" data-lvreset="${a.sym}">Volver al estudio</button>
+        </div>
+        <div class="lvsrc" id="lvstat-${a.sym}"></div>
+      </div>
+      <div class="manual">
+        <label class="fl" for="mp-${a.sym}">Precio manual en USD (vacío = automático)</label>
+        <input type="number" step="any" id="mp-${a.sym}" placeholder="${fmt(a.ref,a.dec)} USD">
+      </div>
+    </div>
+  </div>`).join('');
+
+let MKT = marketState();
+
+function render(){
+  MKT = renderSessions();
+  const modeTxt = !fxAuto ? 'manual'
+                : fxMode === 'buy'  ? 'TR compra \u2212' + TR_SPREAD.toFixed(4)
+                : fxMode === 'sell' ? 'TR venta +' + TR_SPREAD.toFixed(4)
+                : 'interbancario';
+  document.getElementById('m-fx').textContent = 'EUR/USD ' + nf4(FX) + ' \u00b7 ' + modeTxt;
+
+  ASSETS.forEach(a => {
+    const st = state[a.sym], p = st.price, d = a.dec;
+    document.getElementById('u-'+a.sym).textContent = '$' + fmt(p,d);
+    document.getElementById('e-'+a.sym).textContent = '€' + fmt(p/FX,d);
+
+    const cEl = document.getElementById('c-'+a.sym);
+    if (st.chg === null || isNaN(st.chg)) { cEl.textContent=''; cEl.className='c'; }
+    else { cEl.textContent = (st.chg>0?'+':'') + st.chg.toFixed(2) + ' %';
+           cEl.className = 'c ' + (st.chg>=0?'pos':'neg'); }
+
+    const sEl = document.getElementById('s-'+a.sym);
+    if (st.manual) { sEl.textContent = 'manual'; sEl.className = 'src'; }
+    else if (!st.live) { sEl.textContent = 'referencia'; sEl.className = 'src'; }
+    else if (a.kind === 'crypto') { sEl.textContent = 'en vivo · 24/7'; sEl.className = 'src'; }
+    else if (MKT.official) { sEl.textContent = 'en vivo · sesión oficial'; sEl.className = 'src'; }
+    else { sEl.textContent = MKT.extended ? 'último cierre oficial · fuera de sesión'
+                                          : 'último cierre oficial'; sEl.className = 'src stale'; }
+
+    // mapa de niveles vivo: estudio original o recálculo guardado
+    const S = LV[a.sym];
+
+    const bgEl = document.getElementById('bg-'+a.sym);
+    bgEl.className = 'badge ' + S.regime;
+    bgEl.textContent = S.regimeTxt;
+
+    document.getElementById('lvsrc-'+a.sym).innerHTML =
+      'Niveles: <b>' + S.label + '</b>' +
+      (S.src ? ' · ' + S.src : '') +
+      ' · calculados con el precio en $' + fmt(S.ref, d);
+
+    // aviso de rotura
+    const brk = breakInfo(a), brkEl = document.getElementById('brk-'+a.sym);
+    if (brk){
+      brkEl.className = 'brk show';
+      brkEl.innerHTML =
+        '<span class="bt">' + (brk.dir === 'techo' ? 'Techo roto' : 'Suelo perdido') + '</span>' +
+        'El precio ha ' + (brk.dir === 'techo' ? 'superado' : 'perdido') + ' ' +
+        '<b>$' + fmt(brk.lvl.v, d) + '</b> (' + brk.lvl.n + ') ' +
+        'y va ' + (brk.pct > 0 ? '+' : '') + brk.pct.toFixed(1) + '&nbsp;% ' +
+        (brk.dir === 'techo' ? 'por encima' : 'por debajo') + '. ' +
+        (brk.n > 1 ? 'Ha dejado atrás ' + brk.n + ' niveles del mapa. ' : '') +
+        'El mapa actual ya no encaja con el precio.' +
+        '<div class="ba"><button class="ibtn" data-recalc="' + a.sym + '">Recalcular niveles</button></div>';
+    } else {
+      brkEl.className = 'brk';
+      brkEl.innerHTML = '';
+    }
+
+    // soporte y resistencia mas cercanos
+    const below = S.levels.filter(l => l.v < p).sort((x,y)=>y.v-x.v)[0];
+    const above = S.levels.filter(l => l.v > p).sort((x,y)=>x.v-y.v)[0];
+    const gs = document.getElementById('gs-'+a.sym), gt = document.getElementById('gt-'+a.sym);
+    const dual = l => '$'+fmt(l.v,d)+' <em>&middot; \u20ac'+fmt(l.v/FX,d)+'</em>';
+    gs.innerHTML = below ? dual(below)+' <small>'+below.n+' &middot; '+((below.v-p)/p*100).toFixed(1)+'%</small>'
+                         : '<small>sin soporte cercano</small>';
+    gt.innerHTML = above ? dual(above)+' <small>'+above.n+' &middot; +'+((above.v-p)/p*100).toFixed(1)+'%</small>'
+                         : '<small>en zona de máximos</small>';
+
+    document.getElementById('gf-'+a.sym).style.width = '100%';
+    if (below && above) {
+      const pctPos = ((p - below.v) / (above.v - below.v)) * 100;
+      document.getElementById('gm-'+a.sym).style.left = 'calc(' + Math.max(0,Math.min(100,pctPos)) + '% - 1px)';
+    } else {
+      document.getElementById('gm-'+a.sym).style.left = above ? '0%' : 'calc(100% - 3px)';
+    }
+
+    document.getElementById('ll-'+a.sym).innerHTML = [...S.levels].sort((x,y)=>y.v-x.v).map(l => {
+      const dist = ((l.v - p) / p) * 100;
+      const near = Math.abs(dist) < 0.6;
+      return `<div class="lvl ${l.t}${near?' here':''}">
+        <div class="n">${l.n}<i>${l.h} · ${l.t==='res'?'resistencia':'soporte'}</i></div>
+        <div class="v">$${fmt(l.v,d)}<br>€${fmt(l.v/FX,d)}</div>
+        <div class="d">${dist>0?'+':''}${dist.toFixed(1)}%</div>
+      </div>`;
+    }).join('');
+  });
+}
+
+/* ---------- red ---------- */
+const errEl = document.getElementById('err');
+function showErr(msgs){
+  if (!msgs.length) { errEl.classList.remove('show'); return; }
+  errEl.innerHTML = msgs.join('<br>'); errEl.classList.add('show');
+}
+
+async function fetchFx(){
+  if (!fxAuto) return null;
+  const r = await fetch('https://api.frankfurter.dev/v1/latest?base=USD&symbols=EUR');
+  if (!r.ok) throw new Error('FX ' + r.status);
+  const j = await r.json();
+  return 1 / j.rates.EUR;
+}
+
+async function fetchBtc(){
+  const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true');
+  if (!r.ok) throw new Error('CoinGecko ' + r.status);
+  const j = await r.json();
+  return { price: j.bitcoin.usd, chg: j.bitcoin.usd_24h_change };
+}
+
+async function fetchStock(sym, token){
+  const r = await fetch('https://finnhub.io/api/v1/quote?symbol=' + sym + '&token=' + encodeURIComponent(token));
+  if (!r.ok) throw new Error(sym + ' ' + r.status);
+  const j = await r.json();
+  if (!j.c) throw new Error(sym + ': respuesta vacía, revisa el token');
+  return { price: j.c, chg: j.dp };
+}
+
+async function refresh(){
+  const btn = document.getElementById('b-refresh');
+  btn.innerHTML = '<span class="spin">·</span> ···';
+  const errs = [];
+  const token = (store.get('key') || '').trim();
+
+  try { const f = await fetchFx(); if (f) { MIDFX = f; store.set('fx', String(f)); FX = effFx(); } }
+  catch(e){ errs.push('Tipo de cambio: ' + e.message + '. Se mantiene ' + nf4(MIDFX) + '.'); }
+
+  for (const a of ASSETS) {
+    if (state[a.sym].manual) continue;
+    try {
+      const d = a.kind === 'crypto' ? await fetchBtc()
+              : token ? await fetchStock(a.sym, token) : null;
+      if (d) { state[a.sym].price = d.price; state[a.sym].chg = d.chg; state[a.sym].live = true; }
+      else errs.push(a.sym + ': sin token de Finnhub, se usa el precio de referencia.');
+    } catch(e){ errs.push(a.sym + ': ' + e.message); }
+  }
+
+  document.getElementById('m-upd').textContent =
+    'actualizado ' + new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+  const m = marketState();
+  if (!m.official) {
+    errs.push(m.extended
+      ? 'Fuera de la sesión oficial (' + m.nasdaq + '): AMD y NVIDIA muestran el último cierre del NASDAQ. Trade Republic sí cotiza ahora en LS Exchange, con precio de creador de mercado, y puede diferir bastante.'
+      : 'NASDAQ cerrado: AMD y NVIDIA muestran el cierre oficial. La cotización gratuita no cubre pre-market ni after-hours.');
+  }
+  showErr(errs);
+  render();
+  btn.textContent = 'Actualizar';
+}
+
+/* ---------- interacción ---------- */
+/* ---------- tema ---------- */
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme', t);
+  document.querySelector('meta[name=theme-color]')
+    .setAttribute('content', t === 'dark' ? '#12151C' : '#EEF1F4');
+  const b = document.getElementById('b-theme');
+  b.textContent = t === 'dark' ? 'Claro' : 'Oscuro';
+  store.set('theme', t);
+  if (document.getElementById('anaout').innerHTML) runAnalysis();
+  else render();
+}
+applyTheme(store.get('theme') || 'light');
+document.getElementById('b-theme').addEventListener('click', () =>
+  applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'));
+
+document.getElementById('b-refresh').addEventListener('click', refresh);
+document.getElementById('b-cfg').addEventListener('click', e => {
+  document.getElementById('cfg').classList.toggle('open');
+  e.currentTarget.classList.toggle('on');
+});
+document.querySelectorAll('[data-toggle]').forEach(h => {
+  h.addEventListener('click', () => document.getElementById('d-'+h.dataset.toggle).classList.toggle('open'));
+});
+const kEl = document.getElementById('k');
+kEl.value = store.get('key') || '';
+kEl.addEventListener('change', e => { store.set('key', e.target.value.trim()); refresh(); });
+const avEl = document.getElementById('avk');
+avEl.value = store.get('avkey') || '';
+avEl.addEventListener('change', e => { store.set('avkey', e.target.value.trim()); Object.keys(HIST).forEach(k => delete HIST[k]); });
+
+const fxEl = document.getElementById('fxman');
+fxEl.addEventListener('input', e => {
+  const v = parseFloat(e.target.value);
+  if (v > 0.5 && v < 3) { MIDFX = v; fxAuto = false; FX = v; }
+  else if (e.target.value === '') { fxAuto = true; FX = effFx(); }
+  render();
+});
+
+ASSETS.forEach(a => {
+  const el = document.getElementById('mp-'+a.sym);
+  el.value = store.get('man:'+a.sym) || '';
+  el.addEventListener('input', e => {
+    const v = parseFloat(e.target.value);
+    if (v > 0) { state[a.sym].price = v; state[a.sym].manual = true; state[a.sym].chg = null; store.set('man:'+a.sym, String(v)); }
+    else { state[a.sym].manual = false; store.del('man:'+a.sym); state[a.sym].price = a.ref; }
+    render();
+  });
+});
+
+document.querySelectorAll('[data-mode]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    fxMode = btn.dataset.mode; fxAuto = true;
+    store.set('mode', fxMode);
+    document.getElementById('fxman').value = '';
+    document.querySelectorAll('[data-mode]').forEach(b =>
+      b.setAttribute('aria-pressed', String(b === btn)));
+    FX = effFx(); render();
+  });
+});
+document.getElementById('b-auto').addEventListener('click', e => {
+  if (autoTimer) { clearInterval(autoTimer); autoTimer = null; e.currentTarget.classList.remove('on'); }
+  else { autoTimer = setInterval(refresh, 60000); e.currentTarget.classList.add('on'); refresh(); }
+});
+document.getElementById('b-clear').addEventListener('click', () => {
+  ['key','avkey','fx','mode','theme'].forEach(store.del);
+  ASSETS.forEach(a => { store.del('man:'+a.sym); store.del('lv:'+a.sym); });
+  location.reload();
+});
+
+
+/* ============================================================
+   PESTAÑA DE ANÁLISIS
+   ============================================================ */
+/* =====================================================================
+   MOTOR DE ANÁLISIS TÉCNICO — función pura, reutilizable
+   Entrada:  { dates:[], closes:[], highs?:[], lows?:[] }
+   Salida:   objeto con medias, Fibonacci, pivotes, regresión, RSI,
+             ATR, niveles detectados y proyección con banda de predicción.
+   No depende del DOM: se puede ejecutar cuando se quiera.
+   ===================================================================== */
+const TA = (() => {
+
+  const mean = a => a.reduce((s,v) => s+v, 0) / a.length;
+
+  function sma(series, n){
+    if (series.length < n) return null;
+    return mean(series.slice(-n));
+  }
+
+  function smaSeries(series, n){
+    const out = new Array(series.length).fill(null);
+    if (series.length < n) return out;
+    let acc = 0;
+    for (let i = 0; i < series.length; i++){
+      acc += series[i];
+      if (i >= n) acc -= series[i-n];
+      if (i >= n-1) out[i] = acc / n;
+    }
+    return out;
+  }
+
+  function rsi(closes, n = 14){
+    if (closes.length < n+1) return null;
+    let gain = 0, loss = 0;
+    for (let i = 1; i <= n; i++){
+      const d = closes[i] - closes[i-1];
+      d >= 0 ? gain += d : loss -= d;
+    }
+    let ag = gain/n, al = loss/n;
+    for (let i = n+1; i < closes.length; i++){
+      const d = closes[i] - closes[i-1];
+      ag = (ag*(n-1) + (d > 0 ? d : 0)) / n;
+      al = (al*(n-1) + (d < 0 ? -d : 0)) / n;
+    }
+    if (al === 0) return 100;
+    return 100 - 100 / (1 + ag/al);
+  }
+
+  function atr(highs, lows, closes, n = 14){
+    if (!highs || !lows || closes.length < n+1) return null;
+    const tr = [];
+    for (let i = 1; i < closes.length; i++){
+      tr.push(Math.max(highs[i]-lows[i],
+                       Math.abs(highs[i]-closes[i-1]),
+                       Math.abs(lows[i]-closes[i-1])));
+    }
+    return mean(tr.slice(-n));
+  }
+
+  /* Regresión lineal por mínimos cuadrados + intervalo de predicción */
+  function regression(closes){
+    const n = closes.length;
+    if (n < 3) return null;
+    const xs = closes.map((_,i) => i);
+    const xb = mean(xs), yb = mean(closes);
+    let sxy = 0, sxx = 0;
+    for (let i = 0; i < n; i++){ sxy += (xs[i]-xb)*(closes[i]-yb); sxx += (xs[i]-xb)**2; }
+    const slope = sxy / sxx;
+    const intercept = yb - slope*xb;
+    let ssr = 0, sst = 0;
+    for (let i = 0; i < n; i++){
+      const fit = intercept + slope*i;
+      ssr += (closes[i]-fit)**2;
+      sst += (closes[i]-yb)**2;
+    }
+    const r2 = sst === 0 ? 0 : 1 - ssr/sst;
+    const se = Math.sqrt(ssr / Math.max(1, n-2));
+    return {
+      slope, intercept, r2, se, n, xb, sxx,
+      at: x => intercept + slope*x,
+      /* Intervalo de predicción al 95 %: se ensancha al alejarse del centro */
+      band: x => 1.96 * se * Math.sqrt(1 + 1/n + ((x-xb)**2)/sxx)
+    };
+  }
+
+  /* Volatilidad: desviación típica de los rendimientos logarítmicos diarios */
+  function volatility(closes){
+    if (closes.length < 3) return null;
+    const r = [];
+    for (let i = 1; i < closes.length; i++) r.push(Math.log(closes[i]/closes[i-1]));
+    const m = mean(r);
+    const v = mean(r.map(x => (x-m)**2));
+    const daily = Math.sqrt(v);
+    return { daily, annual: daily*Math.sqrt(252) };
+  }
+
+  /* Extremos locales agrupados en niveles */
+  function pivotLevels(highs, lows, closes, lookback = 5, tol = 0.015){
+    const hs = highs || closes, ls = lows || closes;
+    const raw = [];
+    for (let i = lookback; i < closes.length - lookback; i++){
+      let isHigh = true, isLow = true;
+      for (let j = i-lookback; j <= i+lookback; j++){
+        if (j === i) continue;
+        if (hs[j] >= hs[i]) isHigh = false;
+        if (ls[j] <= ls[i]) isLow = false;
+      }
+      if (isHigh) raw.push({v: hs[i], kind:'res'});
+      if (isLow)  raw.push({v: ls[i], kind:'sop'});
+    }
+    /* agrupar niveles cercanos y puntuar por número de toques */
+    const clusters = [];
+    raw.sort((a,b) => b.v - a.v).forEach(p => {
+      const c = clusters.find(c => Math.abs(c.v - p.v)/c.v < tol);
+      if (c){ c.touches++; c.v = (c.v*(c.touches-1) + p.v)/c.touches; }
+      else clusters.push({v: p.v, kind: p.kind, touches: 1});
+    });
+    return clusters.sort((a,b) => b.touches - a.touches || b.v - a.v);
+  }
+
+  function fibonacci(hi, lo, bearish){
+    const rng = hi - lo;
+    return [0.236, 0.382, 0.5, 0.618, 0.786].map(f => ({
+      f,
+      /* en tendencia alcista el retroceso baja desde el máximo;
+         en tendencia bajista el rebote sube desde el mínimo */
+      v: bearish ? lo + rng*f : hi - rng*f
+    }));
+  }
+
+  function classicPivots(h, l, c){
+    if (h == null || l == null) return null;
+    const pp = (h+l+c)/3, r = h-l;
+    return { R3: h + 2*(pp-l), R2: pp + r, R1: 2*pp - l, PP: pp,
+             S1: 2*pp - h, S2: pp - r, S3: l - 2*(h-pp) };
+  }
+
+  /* ---------- función principal ---------- */
+  function analyze(data, opts = {}){
+    const { dates = [], closes = [], highs = null, lows = null } = data;
+    if (closes.length < 20) throw new Error('Se necesitan al menos 20 cierres para analizar.');
+
+    const horizon   = opts.horizon   ?? 30;   // días a proyectar
+    const regWindow = opts.regWindow ?? Math.min(120, closes.length);
+
+    const price = closes[closes.length-1];
+    const hi = Math.max(...(highs || closes));
+    const lo = Math.min(...(lows  || closes));
+
+    const ma20  = sma(closes, 20);
+    const ma50  = sma(closes, 50);
+    const ma200 = sma(closes, 200);
+
+    /* la tendencia decide en qué sentido se miden los Fibonacci */
+    const regFull = regression(closes.slice(-regWindow));
+    const bearish = regFull ? regFull.slope < 0 : price < (ma50 ?? price);
+
+    const fib = fibonacci(hi, lo, bearish);
+    const piv = highs && lows
+      ? classicPivots(highs[highs.length-1], lows[lows.length-1], price)
+      : null;
+
+    const vol = volatility(closes.slice(-regWindow));
+
+    /* Proyección: la recta de regresión extendida, con DOS bandas distintas.
+       - statBand: intervalo de predicción de la regresión (dispersión residual)
+       - volBand:  cono de volatilidad, crece con la raíz del tiempo
+       La segunda es la que refleja de verdad que la incertidumbre aumenta
+       cuanto más lejos se proyecta. */
+    const projection = [];
+    if (regFull){
+      const base = regWindow - 1;
+      for (let k = 1; k <= horizon; k++){
+        const x = base + k;
+        /* value: parte del precio real de hoy y avanza con la pendiente de la
+           regresión. Es lo que interesa: hacia dónde iría desde aquí.
+           regValue: la recta de regresión pura, que puede estar lejos del precio
+           cuando el ajuste es malo. Se dibuja aparte, sin empalmarla al precio. */
+        projection.push({
+          k,
+          value: price + regFull.slope * k,
+          regValue: regFull.at(x),
+          statBand: regFull.band(x),
+          volBand: vol ? 1.96 * vol.daily * Math.sqrt(k) * price : regFull.band(x),
+          band: vol ? 1.96 * vol.daily * Math.sqrt(k) * price : regFull.band(x)
+        });
+      }
+    }
+
+    const levels = pivotLevels(highs, lows, closes)
+      .slice(0, 8)
+      .map(l => ({ ...l, dist: (l.v - price)/price*100 }));
+
+    const nearestRes = [...levels, ...fib.map(f => ({v:f.v, kind:'res', touches:0}))]
+      .filter(l => l.v > price).sort((a,b) => a.v - b.v)[0] || null;
+    const nearestSop = [...levels, ...fib.map(f => ({v:f.v, kind:'sop', touches:0}))]
+      .filter(l => l.v < price).sort((a,b) => b.v - a.v)[0] || null;
+
+    return {
+      meta: { n: closes.length, from: dates[0] ?? null, to: dates[dates.length-1] ?? null,
+              hasOHLC: !!(highs && lows), regWindow, horizon },
+      price, hi, lo,
+      pctFromHigh: (price - hi)/hi*100,
+      pctFromLow:  (price - lo)/lo*100,
+      trend: {
+        bearish,
+        slopePerDay: regFull ? regFull.slope : null,
+        slopePctPerMonth: regFull ? regFull.slope*21/price*100 : null,
+        r2: regFull ? regFull.r2 : null,
+        se: regFull ? regFull.se : null
+      },
+      ma: { ma20, ma50, ma200,
+            series: { ma20: smaSeries(closes,20), ma50: smaSeries(closes,50), ma200: smaSeries(closes,200) } },
+      rsi: rsi(closes),
+      atr: atr(highs, lows, closes),
+      vol,
+      fib, pivots: piv, levels, nearestRes, nearestSop,
+      regression: regFull, projection
+    };
+  }
+
+  return { analyze, sma, smaSeries, rsi, atr, volatility, regression,
+           pivotLevels, fibonacci, classicPivots };
+})();
+
+
+/* ---------- carga de datos ---------- */
+const HIST = {};              // cache por símbolo
+let anaAsset = 'AMD';
+
+function parseCSV(txt){
+  const lines = txt.trim().split(/\r?\n/).filter(l => l.trim());
+  if (lines.length < 21) throw new Error('Hacen falta al menos 20 filas de datos.');
+  const sep = (lines[0].match(/;/g)||[]).length > (lines[0].match(/,/g)||[]).length ? ';' : ',';
+  const head = lines[0].toLowerCase().split(sep).map(h => h.trim().replace(/^"|"$/g,''));
+  const looksHeader = head.some(h => /fecha|date|cierre|close|último|ultimo/.test(h));
+  const idx = name => head.findIndex(h => name.test(h));
+  let iD = idx(/fecha|date/), iC = idx(/cierre|close|último|ultimo|price|precio/),
+      iH = idx(/m[áa]ximo|high|max/), iL = idx(/m[íi]nimo|low|min/);
+  const rows = (looksHeader ? lines.slice(1) : lines).map(l => l.split(sep).map(c => c.trim().replace(/^"|"$/g,'')));
+  if (!looksHeader){ iD = 0; iC = rows[0].length >= 5 ? 4 : 1; iH = 2; iL = 3; }
+
+  /* Un CSV con separador coma Y decimales en coma es ambiguo: cada número se
+     parte en dos columnas y el resultado sería basura silenciosa. Mejor avisar. */
+  if (looksHeader){
+    const bad = rows.filter(r => r.length !== head.length).length;
+    if (bad > rows.length*0.2){
+      throw new Error('Las columnas no cuadran con la cabecera. Si tu archivo usa coma como separador ' +
+                      'y coma decimal a la vez, vuelve a exportarlo con punto y coma.');
+    }
+  }
+
+  const num = v => {
+    if (v == null) return NaN;
+    let x = String(v).replace(/[^\d.,-]/g,'');
+    // formato español 1.234,56 vs inglés 1,234.56
+    if (/,\d{1,2}$/.test(x)) x = x.replace(/\./g,'').replace(',','.');
+    else x = x.replace(/,/g,'');
+    return parseFloat(x);
+  };
+
+  const out = { dates:[], closes:[], highs:[], lows:[] };
+  rows.forEach(r => {
+    const c = num(r[iC]);
+    if (!isFinite(c) || c <= 0) return;
+    out.dates.push(r[iD] ?? '');
+    out.closes.push(c);
+    const h = num(r[iH]), l = num(r[iL]);
+    if (isFinite(h) && isFinite(l) && h >= l){ out.highs.push(h); out.lows.push(l); }
+  });
+  if (out.highs.length !== out.closes.length){ out.highs = null; out.lows = null; }
+
+  /* Coherencia del OHLC: el rango diario mediano debe ser razonable y el cierre
+     debe caer dentro de máximo y mínimo. Si no, se descarta y se sigue con cierres. */
+  if (out.highs){
+    const rangos = out.closes.map((c,i) => (out.highs[i]-out.lows[i])/c).sort((a,b) => a-b);
+    const medio = rangos[Math.floor(rangos.length/2)];
+    const fuera = out.closes.filter((c,i) => c > out.highs[i]*1.001 || c < out.lows[i]*0.999).length;
+    if (medio > 0.25 || fuera > out.closes.length*0.1){ out.highs = null; out.lows = null; }
+  }
+  // orden cronológico ascendente
+  const asc = out.dates.length > 1 && String(out.dates[0]) > String(out.dates[out.dates.length-1]);
+  if (asc){
+    out.dates.reverse(); out.closes.reverse();
+    if (out.highs){ out.highs.reverse(); out.lows.reverse(); }
+  }
+  if (out.closes.length < 20) throw new Error('Solo se han reconocido ' + out.closes.length + ' filas válidas.');
+  out.source = 'CSV pegado';
+  return out;
+}
+
+async function loadHistory(sym){
+  if (HIST[sym]) return HIST[sym];
+  if (sym === 'BTC'){
+    const r = await fetch('https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=365&interval=daily');
+    if (!r.ok) throw new Error('CoinGecko ' + r.status);
+    const j = await r.json();
+    const d = { dates: j.prices.map(p => new Date(p[0]).toISOString().slice(0,10)),
+                closes: j.prices.map(p => p[1]), highs: null, lows: null,
+                source: 'CoinGecko · 365 días · solo cierres' };
+    HIST[sym] = d; return d;
+  }
+  /* Dos fuentes en cascada. Stooq no pide clave y da histórico largo;
+     Alpha Vantage en plan gratuito solo permite outputsize=compact (100 sesiones). */
+  const fallos = [];
+
+  try {
+    const r = await fetch('https://stooq.com/q/d/l/?s=' + sym.toLowerCase() + '.us&i=d');
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const txt = await r.text();
+    if (/^Date,/i.test(txt.trim())){
+      const rows = txt.trim().split(/\r?\n/).slice(1).map(l => l.split(','));
+      const val = rows.filter(c => c.length >= 5 && isFinite(parseFloat(c[4]))).slice(-500);
+      if (val.length >= 60){
+        const d = { dates: val.map(c => c[0]),
+                    closes: val.map(c => parseFloat(c[4])),
+                    highs:  val.map(c => parseFloat(c[2])),
+                    lows:   val.map(c => parseFloat(c[3])),
+                    source: 'Stooq · ' + val.length + ' sesiones · OHLC' };
+        HIST[sym] = d; return d;
+      }
+      throw new Error('solo ' + val.length + ' filas');
+    }
+    throw new Error('respuesta inesperada');
+  } catch(e){ fallos.push('Stooq: ' + e.message); }
+
+  const key = (store.get('avkey') || '').trim();
+  if (!key) throw new Error('NOKEY');
+
+  const r = await fetch('https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=' + sym +
+                        '&outputsize=compact&apikey=' + encodeURIComponent(key));
+  if (!r.ok) throw new Error('Alpha Vantage ' + r.status);
+  const j = await r.json();
+  const ts = j['Time Series (Daily)'];
+  if (!ts){
+    const msg = j.Note || j['Error Message'] || j.Information || 'no devolvió serie';
+    throw new Error('Alpha Vantage: ' + String(msg).replace(/\s+/g,' ').slice(0,150));
+  }
+  const keys = Object.keys(ts).sort();
+  const d = { dates: keys,
+              closes: keys.map(k => parseFloat(ts[k]['4. close'])),
+              highs:  keys.map(k => parseFloat(ts[k]['2. high'])),
+              lows:   keys.map(k => parseFloat(ts[k]['3. low'])),
+              source: 'Alpha Vantage · ' + keys.length + ' sesiones · OHLC · plan gratuito',
+              limitado: keys.length < 200 };
+  HIST[sym] = d; return d;
+}
+
+/* ---------- gráfico SVG ---------- */
+function themeColors(){
+  const cs = getComputedStyle(document.documentElement);
+  const c = n => cs.getPropertyValue(n).trim();
+  return { ink:c('--ink'), dim:c('--dim'), dimmer:c('--dimmer'), rule:c('--rule'),
+           ruleSoft:c('--rule-soft'), techo:c('--techo'), suelo:c('--suelo'),
+           spot:c('--spot'), surface:c('--surface') };
+}
+
+function drawChart(data, r){
+  const C = themeColors();
+  const W = 700, H = 400, PL = 6, PR = 66, PT = 16, PB = 28;
+  const win = r.meta.regWindow;
+  const closes = data.closes.slice(-win);
+  const dates  = data.dates.slice(-win);
+  const proj   = r.projection;
+  const nH = closes.length, nP = proj.length, total = nH + nP;
+
+  let lo = Math.min(...closes), hi = Math.max(...closes);
+  proj.forEach(p => {
+    lo = Math.min(lo, p.value - p.band, p.regValue);
+    hi = Math.max(hi, p.value + p.band, p.regValue);
+  });
+  r.fib.forEach(f => { if (f.v > lo*0.9 && f.v < hi*1.1){ lo = Math.min(lo,f.v); hi = Math.max(hi,f.v); } });
+  const pad = (hi-lo)*0.06; lo -= pad; hi += pad;
+
+  const X = i => PL + (i/(total-1))*(W-PL-PR);
+  const Y = v => PT + (1-(v-lo)/(hi-lo))*(H-PT-PB);
+  const d = 2;
+  const es = (v,dd) => v.toLocaleString('es-ES',{minimumFractionDigits:dd,maximumFractionDigits:dd});
+  const dec = r.price > 10000 ? 0 : 2;
+
+  let g = '';
+
+  // rejilla horizontal
+  for (let i = 0; i <= 4; i++){
+    const v = lo + (hi-lo)*i/4, y = Y(v);
+    g += `<line x1="${PL}" y1="${y.toFixed(1)}" x2="${W-PR}" y2="${y.toFixed(1)}" stroke="${C.ruleSoft}" stroke-width="1"/>`;
+    g += `<text x="${W-PR+5}" y="${(y+3).toFixed(1)}" fill="${C.dim}" font-size="9.5" font-family="monospace" font-weight="500">${es(v,dec)}</text>`;
+    g += `<text x="${W-PR+5}" y="${(y+13).toFixed(1)}" fill="${C.spot}" font-size="8.5" font-family="monospace">€${es(v/FX,dec)}</text>`;
+  }
+
+  // niveles Fibonacci
+  r.fib.forEach(f => {
+    if (f.v < lo || f.v > hi) return;
+    const y = Y(f.v);
+    g += `<line x1="${PL}" y1="${y.toFixed(1)}" x2="${W-PR}" y2="${y.toFixed(1)}" stroke="${C.dimmer}" stroke-width="1" stroke-dasharray="1 4"/>`;
+    g += `<text x="${PL+3}" y="${(y-3).toFixed(1)}" fill="${C.dimmer}" font-size="8" font-family="monospace" font-weight="500">fib ${(f.f*100).toFixed(1)}%</text>`;
+  });
+
+  // banda de proyección
+  if (nP){
+    let up = `M ${X(nH-1).toFixed(1)} ${Y(closes[nH-1]).toFixed(1)}`;
+    let dn = '';
+    proj.forEach((p,i) => { up += ` L ${X(nH+i).toFixed(1)} ${Y(p.value+p.band).toFixed(1)}`; });
+    for (let i = nP-1; i >= 0; i--) dn += ` L ${X(nH+i).toFixed(1)} ${Y(proj[i].value-proj[i].band).toFixed(1)}`;
+    g += `<path d="${up}${dn} Z" fill="${C.spot}" opacity=".11"/>`;
+  }
+
+  // canal de regresión: atraviesa el histórico y se prolonga sobre el futuro
+  if (r.regression){
+    const xEnd = total - 1;
+    const a = r.regression.at(0), b = r.regression.at(nH-1+nP);
+    g += `<line x1="${X(0).toFixed(1)}" y1="${Y(a).toFixed(1)}" x2="${X(xEnd).toFixed(1)}" y2="${Y(b).toFixed(1)}" stroke="${C.dim}" stroke-width="1.2" stroke-dasharray="6 4"/>`;
+    [1,-1].forEach(k => {
+      const a2 = a + k*r.regression.se, b2 = b + k*r.regression.se;
+      g += `<line x1="${X(0).toFixed(1)}" y1="${Y(a2).toFixed(1)}" x2="${X(xEnd).toFixed(1)}" y2="${Y(b2).toFixed(1)}" stroke="${C.dim}" stroke-width=".8" opacity=".38"/>`;
+    });
+  }
+
+  // medias móviles
+  [['ma50',C.suelo],['ma200',C.techo]].forEach(([k,col]) => {
+    const ser = r.ma.series[k].slice(-win);
+    let path = '', started = false;
+    ser.forEach((v,i) => { if (v == null) return;
+      path += (started ? ' L ' : 'M ') + X(i).toFixed(1) + ' ' + Y(v).toFixed(1); started = true; });
+    if (started) g += `<path d="${path}" fill="none" stroke="${col}" stroke-width="1.5" opacity=".8"/>`;
+  });
+
+  // precio: área tenue debajo y luego la línea
+  let pp = '';
+  closes.forEach((v,i) => { pp += (i ? ' L ' : 'M ') + X(i).toFixed(1) + ' ' + Y(v).toFixed(1); });
+  g += `<path d="${pp} L ${X(nH-1).toFixed(1)} ${(H-PB).toFixed(1)} L ${X(0).toFixed(1)} ${(H-PB).toFixed(1)} Z"
+        fill="${C.ink}" opacity=".05"/>`;
+  g += `<path d="${pp}" fill="none" stroke="${C.ink}" stroke-width="2" class="pxline"/>`;
+
+  // línea de proyección
+  if (nP){
+    let cp = `M ${X(nH-1).toFixed(1)} ${Y(closes[nH-1]).toFixed(1)}`;
+    proj.forEach((p,i) => { cp += ` L ${X(nH+i).toFixed(1)} ${Y(p.value).toFixed(1)}`; });
+    g += `<path d="${cp}" fill="none" stroke="${C.spot}" stroke-width="1.8" stroke-dasharray="5 4"/>`;
+  }
+
+  // divisor de hoy
+  const xh = X(nH-1);
+  g += `<line x1="${xh.toFixed(1)}" y1="${PT}" x2="${xh.toFixed(1)}" y2="${H-PB}" stroke="${C.spot}" stroke-width="1" opacity=".45"/>`;
+  g += `<circle cx="${xh.toFixed(1)}" cy="${Y(closes[nH-1]).toFixed(1)}" r="4" fill="${C.spot}" stroke="${C.surface}" stroke-width="1.5"/>`;
+  g += `<text x="${(xh-4).toFixed(1)}" y="${H-PB+13}" fill="${C.spot}" font-size="9" font-weight="600" font-family="monospace" text-anchor="end">HOY</text>`;
+
+  // extremos del eje temporal
+  g += `<text x="${PL}" y="${H-PB+13}" fill="${C.dimmer}" font-size="8.5" font-family="monospace">${dates[0]||''}</text>`;
+  g += `<text x="${(W-PR).toFixed(1)}" y="${H-PB+13}" fill="${C.dimmer}" font-size="8.5" font-family="monospace" text-anchor="end">+${nP}d</text>`;
+
+  document.getElementById('chartwrap').innerHTML =
+    `<style>.pxline{stroke-dasharray:4000;stroke-dashoffset:4000;animation:trace 1.1s cubic-bezier(.22,1,.36,1) forwards}
+      @keyframes trace{to{stroke-dashoffset:0}}
+      @media (prefers-reduced-motion:reduce){.pxline{animation:none;stroke-dashoffset:0}}</style>
+     <div class="chart"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img"
+       aria-label="Histórico, regresión y proyección"> ${g} </svg>
+     <div class="clegend">
+       <span><i style="background:var(--ink)"></i>Precio</span>
+       <span><i style="background:var(--suelo)"></i>SMA 50</span>
+       <span><i style="background:var(--techo)"></i>SMA 200</span>
+       <span><i style="background:var(--dim)"></i>Regresión ±1σ</span>
+       <span><i style="background:var(--spot)"></i>Proyección · cono 95 %</span>
+       <span><i style="background:var(--dimmer)"></i>Fibonacci</span>
+     </div></div>`;
+}
+
+/* ---------- panel de métricas ---------- */
+function drawMetrics(data, r){
+  const dec = r.price > 10000 ? 0 : 2;
+  const es = (v,dd=dec) => v==null ? '—' : v.toLocaleString('es-ES',{minimumFractionDigits:dd,maximumFractionDigits:dd});
+  const dual = v => v==null ? '—' : '$'+es(v)+'<small>€'+es(v/FX)+'</small>';
+  const last = r.projection.length ? r.projection[r.projection.length-1] : null;
+  const slopeCls = r.trend.bearish ? 'r' : 'g';
+  const rsiCls = r.rsi > 70 ? 'r' : r.rsi < 30 ? 'g' : 'y';
+
+  let out = `<h4>Presente</h4><div class="mgrid">
+    <div class="mcell"><dt>Último cierre</dt><dd>${dual(r.price)}</dd></div>
+    <div class="mcell"><dt>Desde el máximo</dt><dd class="${r.pctFromHigh<-10?'r':'y'}">${r.pctFromHigh.toFixed(1)} %<small>máx. $${es(r.hi)}</small></dd></div>
+    <div class="mcell"><dt>RSI 14</dt><dd class="${rsiCls}">${r.rsi==null?'—':r.rsi.toFixed(1)}<small>${r.rsi>70?'sobrecompra':r.rsi<30?'sobreventa':'zona neutra'}</small></dd></div>
+    <div class="mcell"><dt>Volatilidad anual</dt><dd class="y">${r.vol?(r.vol.annual*100).toFixed(1)+' %':'—'}<small>${r.vol?(r.vol.daily*100).toFixed(2)+' % diaria':''}</small></dd></div>
+    <div class="mcell"><dt>SMA 50</dt><dd class="${r.ma.ma50&&r.price<r.ma.ma50?'r':'g'}">${dual(r.ma.ma50)}</dd></div>
+    <div class="mcell"><dt>SMA 200</dt><dd class="${r.ma.ma200==null?'':r.price<r.ma.ma200?'r':'g'}">${dual(r.ma.ma200)}${r.ma.ma200==null?'<small>faltan sesiones</small>':''}</dd></div>
+  </div>
+
+  <h4>Tendencia · regresión de ${r.meta.regWindow} sesiones</h4><div class="mgrid">
+    <div class="mcell"><dt>Pendiente</dt><dd class="${slopeCls}">${r.trend.slopePctPerMonth>0?'+':''}${r.trend.slopePctPerMonth.toFixed(2)} %<small>al mes · $${es(r.trend.slopePerDay,4)} al día</small></dd></div>
+    <div class="mcell"><dt>Ajuste R²</dt><dd class="${r.trend.r2>0.7?'g':r.trend.r2>0.4?'y':'r'}">${r.trend.r2.toFixed(3)}<small>${r.trend.r2>0.7?'tendencia definida':r.trend.r2>0.4?'tendencia débil':'sin tendencia clara'}</small></dd></div>
+  </div>
+
+  <h4>Proyección a ${r.meta.horizon} días</h4><div class="mgrid">
+    <div class="mcell"><dt>Si la pendiente continúa</dt><dd class="y">${last?dual(last.value):'—'}<small>desde el precio de hoy</small></dd></div>
+    <div class="mcell"><dt>Rango 95 %</dt><dd class="y" style="font-size:12.5px">${last?'$'+es(last.value-last.band)+' – '+es(last.value+last.band):'—'}<small>${last?'€'+es((last.value-last.band)/FX)+' – '+es((last.value+last.band)/FX):''}</small></dd></div>
+    <div class="mcell"><dt>Recta de regresión pura</dt><dd style="color:var(--dim)">${last?dual(last.regValue):'—'}<small>ignora dónde está el precio hoy</small></dd></div>
+    <div class="mcell"><dt>Desvío del precio</dt><dd class="${r.regression&&Math.abs(r.price-r.regression.at(r.meta.regWindow-1))>r.regression.se?'r':'g'}">${r.regression?((r.price-r.regression.at(r.meta.regWindow-1))/r.regression.se).toFixed(2)+' σ':'—'}<small>distancia del precio a su propia recta</small></dd></div>
+  </div>
+
+  <h4>Niveles detectados por el algoritmo</h4><div class="detail open" style="border:1px solid var(--trace);padding:4px 13px 10px">`;
+
+  const all = [
+    ...r.levels.map(l => ({v:l.v, k:l.kind, n:'Extremo local · '+l.touches+(l.touches>1?' toques':' toque')})),
+    ...r.fib.map(f => ({v:f.v, k: f.v > r.price ? 'res':'sop', n:'Fibonacci '+(f.f*100).toFixed(1)+' %'}))
+  ].sort((a,b) => b.v - a.v);
+
+  all.forEach(l => {
+    const dist = (l.v - r.price)/r.price*100;
+    out += `<div class="lvl ${l.k}${Math.abs(dist)<0.8?' here':''}">
+      <div class="n">${l.n}<i>${l.k==='res'?'resistencia':'soporte'}</i></div>
+      <div class="v">$${es(l.v)}<br>€${es(l.v/FX)}</div>
+      <div class="d">${dist>0?'+':''}${dist.toFixed(1)}%</div></div>`;
+  });
+  out += '</div>';
+
+  if (r.pivots){
+    out += '<h4>Pivotes de la última sesión</h4><div class="detail open" style="border:1px solid var(--trace);padding:4px 13px 10px">';
+    ['R3','R2','R1','PP','S1','S2','S3'].forEach(k => {
+      const v = r.pivots[k];
+      out += `<div class="lvl ${k[0]==='R'?'res':k==='PP'?'':'sop'}">
+        <div class="n">${k}</div><div class="v">$${es(v)}<br>€${es(v/FX)}</div>
+        <div class="d">${((v-r.price)/r.price*100).toFixed(1)}%</div></div>`;
+    });
+    out += '</div>';
+  }
+
+  if (r.trend.r2 < 0.4){
+    out += `<div class="err show" style="margin-top:16px">El R² es ${r.trend.r2.toFixed(3)}: la recta apenas
+      explica el movimiento de estas ${r.meta.regWindow} sesiones, así que su pendiente no significa
+      gran cosa y la proyección solo vale como referencia de volatilidad. Prueba con otra ventana de
+      regresión.</div>`;
+  }
+
+  out += `<div class="foot" style="margin-top:20px"><b>Cómo leer la proyección.</b>
+    La línea dorada no es una previsión: arranca en el precio de hoy y avanza con la pendiente de la
+    regresión de las últimas ${r.meta.regWindow} sesiones, es decir, qué pasaría si el ritmo actual
+    continuara igual. La línea gris discontinua es la recta de regresión pura, que ignora dónde está
+    el precio hoy; cuando ambas se separan mucho, es señal de que el precio se ha desviado de su
+    propia tendencia. El cono es un intervalo del 95 %
+    calculado con la volatilidad diaria real (${r.vol?(r.vol.daily*100).toFixed(2):'—'} %) y crece
+    con la raíz del tiempo, que es la forma honesta de dibujar la incertidumbre: a
+    ${r.meta.horizon} días es ${r.projection.length?Math.sqrt(r.meta.horizon).toFixed(1):'—'} veces
+    más ancho que a un día. Un R² de ${r.trend.r2.toFixed(2)} indica cuánto de la variación explica
+    esa recta; por debajo de 0,4 la extrapolación no dice gran cosa.</div>`;
+
+  document.getElementById('anaout').innerHTML = out;
+}
+
+/* ---------- orquestación ---------- */
+async function runAnalysis(csv){
+  const st = document.getElementById('dstat');
+  st.innerHTML = 'Cargando datos de <b>' + anaAsset + '</b>…';
+  document.getElementById('chartwrap').innerHTML = '';
+  document.getElementById('anaout').innerHTML = '';
+  try {
+    const data = csv ? parseCSV(csv) : await loadHistory(anaAsset);
+    const pedida = parseInt(document.getElementById('regwin').value, 10);
+    const usada  = Math.min(pedida, data.closes.length);
+    const r = TA.analyze(data, {
+      horizon:   parseInt(document.getElementById('horizon').value, 10),
+      regWindow: usada
+    });
+    const avisos = [];
+    if (usada < pedida) avisos.push('regresión recortada a ' + usada + ' sesiones');
+    if (r.ma.ma200 == null) avisos.push('sin SMA 200: harían falta 200 sesiones y hay ' + r.meta.n);
+    st.innerHTML = `Fuente: <b>${data.source}</b> · ${r.meta.n} sesiones · ` +
+      `${r.meta.from || '?'} a ${r.meta.to || '?'} · ` +
+      (r.meta.hasOHLC ? 'con máximos y mínimos' : 'solo cierres, sin pivotes ni ATR') +
+      (avisos.length ? '<br><b>' + avisos.join(' · ') + '</b>' : '');
+    lastAna = { sym: anaAsset, data, r };
+    drawChart(data, r);
+    drawMetrics(data, r);
+  } catch(e){
+    lastAna = null;
+    if (e.message === 'NOKEY'){
+      st.innerHTML = 'No hay histórico para ' + anaAsset + '. Dos salidas: pega una clave gratuita de ' +
+        '<a href="https://www.alphavantage.co/support/#api-key" target="_blank" rel="noopener">Alpha Vantage</a>' +
+        ' en Ajustes, que da 100 sesiones, o usa <b>Pegar CSV</b> con una exportación de tu bróker, ' +
+        'que no necesita clave y admite años de datos. Bitcoin carga solo.';
+    } else {
+      st.innerHTML = 'No se ha podido analizar. <b>' + e.message + '</b><br>' +
+        'Con <b>Pegar CSV</b> funciona sin conexión ni clave.';
+    }
+  }
+}
+
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', String(x === t)));
+    document.getElementById('pane-track').classList.toggle('open', t.dataset.tab === 'track');
+    document.getElementById('pane-ana').classList.toggle('open', t.dataset.tab === 'ana');
+  });
+});
+document.querySelectorAll('[data-asset]').forEach(b => {
+  b.addEventListener('click', () => {
+    anaAsset = b.dataset.asset;
+    document.querySelectorAll('[data-asset]').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    runAnalysis();
+  });
+});
+document.getElementById('b-run').addEventListener('click', () => runAnalysis());
+document.getElementById('b-csv').addEventListener('click', () => document.getElementById('csvbox').classList.toggle('open'));
+document.getElementById('b-csvgo').addEventListener('click', () => {
+  const t = document.getElementById('csvtext').value;
+  if (t.trim()) { document.getElementById('csvbox').classList.remove('open'); runAnalysis(t); }
+});
+['horizon','regwin'].forEach(id => document.getElementById(id).addEventListener('change', () => {
+  if (document.getElementById('anaout').innerHTML) runAnalysis();
+}));
+
+
+/* ============================================================
+   RECÁLCULO DE NIVELES
+   Reutiliza el mismo motor que la pestaña de análisis: descarga el
+   histórico del activo, lo analiza y convierte el resultado en un mapa
+   de techos y suelos nuevo, anclado al precio de ahora.
+   ============================================================ */
+let lastAna = null;                 // último análisis ejecutado en la pestaña Análisis
+
+function lvSetFromAnalysis(sym, data, r, refPrice){
+  const ref = refPrice > 0 ? refPrice : r.price;
+  const levels = buildLevels(r, ref);
+  if (levels.length < 4) throw new Error('el histórico no da niveles suficientes');
+  const reg = regimeFrom(r);
+  const now = new Date();
+  LV[sym] = {
+    levels, ref,
+    regime: reg.regime, regimeTxt: reg.regimeTxt,
+    ts: now.toISOString(),
+    label: 'Recálculo ' + now.toLocaleDateString('es-ES',{day:'numeric',month:'short'}) +
+           ' ' + now.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}),
+    src: (data.source || 'histórico') + ' · hasta ' + (r.meta.to || '?') +
+         (Math.abs(ref - r.price)/r.price > 0.03
+            ? ' · ojo: el precio de ahora está ' + ((ref - r.price)/r.price*100).toFixed(1) +
+              ' % respecto al último cierre del histórico'
+            : ''),
+    custom: true
+  };
+  saveLevelSet(sym);
+  return LV[sym];
+}
+
+function lvStat(sym, msg){
+  const el = document.getElementById('lvstat-'+sym);
+  if (el) el.innerHTML = msg;
+}
+function lvBusy(sym, on){
+  document.querySelectorAll('[data-recalc="'+sym+'"]').forEach(b => {
+    b.textContent = on ? 'Calculando…' : 'Recalcular niveles';
+    b.classList.toggle('busy', on);
+  });
+}
+function lvErrTxt(sym, e){
+  if (e.message === 'NOKEY')
+    return 'Sin histórico gratuito para <b>' + sym + '</b>. Ve a <b>Análisis → Pegar CSV</b>, ' +
+           'pega una exportación diaria de tu bróker, dale a <b>Analizar este CSV</b> y luego a ' +
+           '<b>Usar estos niveles en Seguimiento</b>. También sirve una clave de Alpha Vantage en Ajustes.';
+  return 'No se ha podido recalcular: <b>' + e.message + '</b>. La vía sin conexión es Análisis → Pegar CSV.';
+}
+
+async function recalcOne(sym, quiet){
+  lvBusy(sym, true);
+  if (!quiet) lvStat(sym, 'Descargando histórico y recalculando…');
+  try {
+    delete HIST[sym];                     // recalcular implica volver a bajar los datos
+    const data = await loadHistory(sym);
+    const r = TA.analyze(data, { horizon: 30, regWindow: Math.min(120, data.closes.length) });
+    const st = state[sym];
+    const ref = (st.live || st.manual) && st.price > 0 ? st.price : r.price;
+    const S = lvSetFromAnalysis(sym, data, r, ref);
+    render();
+    lvStat(sym, S.levels.length + ' niveles recalculados · ' + S.src +
+           '<br>RSI ' + (r.rsi == null ? '—' : r.rsi.toFixed(0)) +
+           ' · volatilidad anual ' + (r.vol ? (r.vol.annual*100).toFixed(0) + ' %' : '—') +
+           ' · R² ' + (r.trend.r2 == null ? '—' : r.trend.r2.toFixed(2)));
+    return { ok: true, n: S.levels.length };
+  } catch(e){
+    lvStat(sym, lvErrTxt(sym, e));
+    return { ok: false, msg: sym + ': ' + (e.message === 'NOKEY' ? 'sin histórico gratuito' : e.message) };
+  } finally {
+    lvBusy(sym, false);
+  }
+}
+
+async function recalcAll(){
+  const stat = document.getElementById('recalc-stat');
+  const btn = document.getElementById('b-recalc-all');
+  btn.classList.add('busy'); btn.textContent = 'Calculando…';
+  stat.textContent = 'recalculando ' + ASSETS.length + ' activos…';
+  const okey = [], fails = [];
+  for (const a of ASSETS){
+    const res = await recalcOne(a.sym, true);
+    res.ok ? okey.push(a.sym + ' (' + res.n + ')') : fails.push(res.msg);
+  }
+  stat.innerHTML = (okey.length ? 'recalculado: ' + okey.join(' · ') : '') +
+                   (fails.length ? (okey.length ? '<br>' : '') + fails.join(' · ') + ' → usa Análisis → Pegar CSV' : '');
+  btn.classList.remove('busy'); btn.textContent = 'Recalcular todos los niveles';
+}
+
+document.addEventListener('click', e => {
+  const rc = e.target.closest('[data-recalc]');
+  if (rc){ e.stopPropagation(); recalcOne(rc.dataset.recalc); return; }
+  const rs = e.target.closest('[data-lvreset]');
+  if (rs){
+    e.stopPropagation();
+    const sym = rs.dataset.lvreset;
+    resetLevelSet(sym); render();
+    lvStat(sym, 'Restaurados los niveles del estudio del 6 de agosto de 2026.');
+  }
+});
+document.getElementById('b-recalc-all').addEventListener('click', recalcAll);
+document.getElementById('b-lv-reset-all').addEventListener('click', () => {
+  ASSETS.forEach(a => { resetLevelSet(a.sym); lvStat(a.sym, ''); });
+  render();
+  document.getElementById('recalc-stat').textContent = 'niveles del estudio del 6-ago-2026 restaurados';
+});
+
+/* Puente desde la pestaña de análisis: convierte el análisis que está en
+   pantalla (incluido el de un CSV pegado) en el mapa de niveles activo. */
+document.getElementById('b-apply').addEventListener('click', () => {
+  const st = document.getElementById('dstat');
+  if (!lastAna){
+    st.innerHTML = 'Primero ejecuta un análisis (o analiza un CSV) y después pulsa <b>Usar estos niveles en Seguimiento</b>.';
+    return;
+  }
+  try {
+    const sym = lastAna.sym, s = state[sym];
+    const ref = (s.live || s.manual) && s.price > 0 ? s.price : lastAna.r.price;
+    const S = lvSetFromAnalysis(sym, lastAna.data, lastAna.r, ref);
+    render();
+    st.innerHTML = 'Aplicado a <b>' + sym + '</b>: ' + S.levels.length +
+      ' niveles nuevos en la pestaña Seguimiento, anclados a $' +
+      ref.toLocaleString('es-ES',{maximumFractionDigits: ref > 10000 ? 0 : 2}) + '. ' +
+      'Fuente: ' + S.src + '.';
+  } catch(err){
+    st.innerHTML = 'No se ha podido aplicar: <b>' + err.message + '</b>';
+  }
+});
+
+document.querySelectorAll('[data-mode]').forEach(b =>
+  b.setAttribute('aria-pressed', String(b.dataset.mode === fxMode)));
+setInterval(renderSessions, 60000);
+render();
+refresh();
+
+/* ---------- instalación como app (solo si se sirve por https) ---------- */
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
